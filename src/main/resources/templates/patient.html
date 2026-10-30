@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Patients · CareCover</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><div class="shell">
+  <aside class="sidebar"><a class="brand" th:href="@{/}"><span class="brand-mark">✦</span><span>care<span class="brand-light">cover</span><small>HEALTH ADMIN</small></span></a>
+    <div class="nav-label">WORKSPACE</div><a class="nav-item" th:href="@{/}">⌂ &nbsp;Overview</a><a class="nav-item" th:href="@{/policies}">▤ &nbsp;Insurance plans</a><a class="nav-item" th:href="@{/claims}">◷ &nbsp;Claims</a>
+    <div class="nav-label">DIRECTORY</div><a class="nav-item active" th:href="@{/patient}">♙ &nbsp;Patients</a><a class="nav-item" th:href="@{/doctor}">✚ &nbsp;Doctors</a><a class="nav-item" th:href="@{/vendor}">⌑ &nbsp;Providers</a>
+    <div class="sidebar-bottom"><div class="avatar">CC</div><div><b>CareCover Admin</b><small>Operations workspace</small></div></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">DIRECTORY / CARE NETWORK</span><h1>Patients</h1><p class="muted">Patient records, coverage status and renewal follow-ups in one place.</p></div><a class="button primary" href="#patient-form">＋ Add patient</a></header>
+    <section class="stats patient-stats">
+      <article class="stat-card"><div class="stat-top"><span>Total patients</span><span class="stat-icon blue">♙</span></div><strong th:text="${#lists.size(patients)}">0</strong><small>Registered in your care network</small></article>
+      <article class="stat-card"><div class="stat-top"><span>Active coverage</span><span class="stat-icon mint">✓</span></div><strong th:text="${#lists.size(patients.?[coverageStatus == 'Active'])}">0</strong><small>Currently insured patients</small></article>
+      <article class="stat-card"><div class="stat-top"><span>Renewals coming up</span><span class="stat-icon amber">◷</span></div><strong th:text="${expiringCount}">0</strong><small>Within the next 30 days</small></article>
+    </section>
+    <section class="patient-layout">
+      <article class="panel directory-panel"><div class="panel-head"><div><h2>Patient directory</h2><p class="muted">Coverage indicators update from policy dates.</p></div><span class="quiet-count" th:text="|${#lists.size(patients)} records|">0 records</span></div>
+        <div class="table-wrap"><table class="patient-table"><thead><tr><th>PATIENT</th><th>CONTACT</th><th>REGISTERED / LAST VISIT</th><th>INSURANCE COVERAGE</th><th>RENEWAL</th><th></th></tr></thead><tbody>
+          <tr th:each="p : ${patients}">
+            <td><div class="patient-identity"><img th:if="${p.profileImageUrl != null and !p.profileImageUrl.isBlank()}" th:src="${p.profileImageUrl}" alt="Patient profile" class="patient-photo"><span th:unless="${p.profileImageUrl != null and !p.profileImageUrl.isBlank()}" class="patient-initial" th:text="${#strings.substring(p.patientName,0,1).toUpperCase()}">P</span><div><b th:text="${p.patientName}">Patient</b><small th:text="|ID CC-${p.patientId}|">ID</small></div></div></td>
+            <td><b class="contact-primary" th:text="${p.email != null and !p.email.isBlank() ? p.email : p.phoneNumber}">Contact</b><small class="cell-sub" th:if="${p.email != null and p.phoneNumber != null}" th:text="${p.phoneNumber}">Phone</small></td>
+            <td><b class="contact-primary" th:text="${p.registeredAt != null ? #temporals.format(p.registeredAt,'dd MMM yyyy') : 'Not recorded'}">Registration</b><small class="cell-sub" th:text="${p.lastVisitDate != null ? 'Last visit · ' + #temporals.format(p.lastVisitDate,'dd MMM yyyy') : 'Last visit · not recorded'}">Last visit</small></td>
+            <td><b th:text="${p.insurancePlan != null and !p.insurancePlan.isBlank() ? p.insurancePlan : 'No plan linked'}">Plan</b><small class="cell-sub" th:if="${p.policyNumber != null}" th:text="|Policy ${p.policyNumber}|">Policy ID</small><span class="coverage-badge" th:classappend="${p.coverageStatus == 'Active' ? ' is-active' : (p.coverageStatus == 'Expired' ? ' is-expired' : (p.coverageStatus == 'Scheduled' ? ' is-scheduled' : ' is-none'))}" th:text="${p.coverageStatus}">Status</span><details class="message-preview" th:if="${p.coverageStatus == 'Active'}"><summary>Preview activation message</summary><p th:text="|Hello ${p.patientName}, your ${p.insurancePlan} coverage (policy ${p.policyNumber}) is active from ${p.coverageStartDate != null ? #temporals.format(p.coverageStartDate,'dd MMM yyyy') : 'today'}. Keep this message for your records.|">Activation message</p></details><details class="message-preview" th:if="${p.coverageStatus == 'Expired'}"><summary>Preview expiry notice</summary><p th:text="|Hello ${p.patientName}, your ${p.insurancePlan} coverage (policy ${p.policyNumber}) ended on ${p.coverageEndDate != null ? #temporals.format(p.coverageEndDate,'dd MMM yyyy') : 'the recorded end date'}. Contact CareCover if you need help with next steps.|">Expiry message</p></details></td>
+            <td><span th:if="${p.coverageEndDate != null}" th:text="${#temporals.format(p.coverageEndDate,'dd MMM yyyy')}">Date</span><small class="renewal-hint" th:if="${p.daysToExpiry >= 0 and p.daysToExpiry <= 30}" th:text="|${p.daysToExpiry} days left · reminder due|">Renewal due</small><details class="message-preview" th:if="${p.daysToExpiry >= 0 and p.daysToExpiry <= 30}"><summary>Preview reminder</summary><p th:text="|Hello ${p.patientName}, your ${p.insurancePlan} coverage (policy ${p.policyNumber}) is due to end on ${#temporals.format(p.coverageEndDate,'dd MMM yyyy')}. Please contact CareCover to review renewal options.|">Reminder text</p></details><span th:if="${p.coverageEndDate == null}" class="muted">—</span></td>
+            <td><div class="actions"><a class="text-link" th:href="@{/patient/edit/{id}(id=${p.patientId})}">Edit</a><form method="post" th:action="@{/patient/delete/{id}(id=${p.patientId})}" onsubmit="return confirm('Delete this patient record?')"><button class="link-danger">Delete</button></form></div></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(patients)}"><td colspan="6" class="empty">No patients yet. Add a record to start tracking coverage.</td></tr>
+        </tbody></table></div>
+        <div class="reminder-note"><span>✉</span><div><b>Renewal message preview</b><p>Patients expiring within 30 days are flagged above. Reminder messages are drafts only; connect an email or SMS provider to deliver them.</p></div></div>
+      </article>
+      <aside class="panel form-panel" id="patient-form"><div class="panel-head"><div><h2 th:text="${patientModel.patientId == null ? 'Add a patient' : 'Update patient'}">Add a patient</h2><p class="muted">Contact, visit and policy information.</p></div></div>
+        <form class="form patient-form" method="post" th:action="@{/patient/save}" th:object="${patientModel}">
+          <input type="hidden" th:field="*{patientId}">
+          <label>Full name<input required maxlength="120" th:field="*{patientName}" placeholder="e.g. Ananya Mehta"></label>
+          <div class="form-row"><label>Age<input type="number" min="0" max="125" th:field="*{age}" placeholder="Age"></label><label>Gender<select th:field="*{gender}"><option value="">Choose</option><option value="Female">Female</option><option value="Male">Male</option><option value="Non-binary">Non-binary</option><option value="Prefer not to say">Prefer not to say</option></select></label></div>
+          <div class="form-row"><label>Email<input type="email" maxlength="160" th:field="*{email}" placeholder="patient@example.com"></label><label>Phone<input type="tel" maxlength="30" th:field="*{phoneNumber}" placeholder="+91 98765 43210"></label></div>
+          <label>Profile photo URL <span class="optional">Optional</span><input type="url" maxlength="500" th:field="*{profileImageUrl}" placeholder="https://…"></label>
+          <div class="form-row"><label>Registered on<input type="date" th:field="*{registeredAt}"></label><label>Last visit<input type="date" th:field="*{lastVisitDate}"></label></div>
+          <label>Condition / care notes<input maxlength="200" th:field="*{disease}" placeholder="Optional care note"></label>
+          <div class="form-divider"><span>INSURANCE TRACKING</span></div>
+          <label>Insurance plan<input maxlength="120" th:field="*{insurancePlan}" placeholder="e.g. Care Plus Family"></label>
+          <label>Policy number<input maxlength="80" th:field="*{policyNumber}" placeholder="e.g. CC-2026-00418"></label>
+          <div class="form-row"><label>Coverage starts<input type="date" th:field="*{coverageStartDate}"></label><label>Coverage ends<input type="date" th:field="*{coverageEndDate}"></label></div>
+          <label>Reminder preference<select th:field="*{notificationPreference}"><option value="">Not set</option><option value="Email">Email</option><option value="SMS">SMS</option><option value="Email and SMS">Email and SMS</option></select></label>
+          <div class="form-divider"><span>PATIENT PORTAL ACCESS</span></div>
+          <label class="check-label"><input type="checkbox" th:field="*{portalEnabled}"> Enable patient sign-in</label>
+          <label>Temporary or new password <span class="optional">10+ characters</span><input type="password" minlength="10" maxlength="100" th:field="*{portalPassword}" autocomplete="new-password" placeholder="Leave blank to keep current password"></label>
+          <p class="form-hint">Give the patient their sign-in details securely. Passwords are stored as one-way hashes.</p>
+          <div class="form-alert error" th:if="${saveError != null}" th:text="${saveError}">Unable to save</div>
+          <div class="form-alert success" th:if="${saveSuccess != null}" th:text="${saveSuccess}">Saved</div>
+          <button class="button primary full" th:text="${patientModel.patientId == null ? 'Save patient record' : 'Save changes'}">Save patient record</button>
+          <a class="button quiet full" th:if="${patientModel.patientId != null}" th:href="@{/patient}">Cancel editing</a>
+        </form>
+      </aside>
+    </section>
+    <footer>CareCover <span>·</span> Health operations, made simpler</footer>
+  </main>
+</div></body></html>
+

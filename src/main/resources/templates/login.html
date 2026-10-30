@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · CareCover</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body class="auth-page"><main class="auth-card">
+  <a class="brand auth-brand" th:href="@{/login}"><span class="brand-mark">✦</span><span>care<span class="brand-light">cover</span><small>HEALTH COVERAGE PORTAL</small></span></a>
+  <span class="eyebrow">WELCOME BACK</span><h1>Sign in to CareCover</h1><p class="muted">Use your admin account or patient email and password.</p>
+  <div class="form-alert error" th:if="${param.error}">Sign-in failed. Check your credentials or ask your administrator to enable your account.</div>
+  <div class="form-alert success" th:if="${param.logout}">You have been signed out.</div>
+  <div class="form-alert error" th:if="${param.denied}">This account does not have access to that area.</div>
+  <form class="form auth-form" method="post" th:action="@{/login}">
+    <label>Admin username or patient email<input name="username" type="text" required autocomplete="username" autofocus placeholder="name@example.com"></label>
+    <label>Password<input name="password" type="password" required autocomplete="current-password" placeholder="Your password"></label>
+    <button class="button primary full">Sign in securely</button>
+  </form>
+  <div class="auth-foot"><span>✦</span> Secure access to your care and coverage information.</div>
+</main></body></html>

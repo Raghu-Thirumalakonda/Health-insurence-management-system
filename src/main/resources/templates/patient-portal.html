@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My coverage · CareCover</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body class="portal-page"><header class="portal-top"><a class="brand" th:href="@{/portal}"><span class="brand-mark">✦</span><span>care<span class="brand-light">cover</span><small>MEMBER PORTAL</small></span></a><form method="post" th:action="@{/logout}"><button class="button quiet">Sign out</button></form></header>
+<main class="portal-main">
+  <header class="portal-welcome"><div><span class="eyebrow">YOUR CARECOVER ACCOUNT</span><h1>Hello, <span th:text="${patient.patientName}">Patient</span></h1><p class="muted">Your insurance coverage and membership details.</p></div><span class="coverage-badge portal-status" th:classappend="${patient.coverageStatus == 'Active' ? ' is-active' : (patient.coverageStatus == 'Expired' ? ' is-expired' : (patient.coverageStatus == 'Scheduled' ? ' is-scheduled' : ' is-none'))}" th:text="${patient.coverageStatus}">Status</span></header>
+  <section class="portal-grid">
+    <article class="panel portal-policy"><div class="panel-head"><div><span class="eyebrow">YOUR PLAN</span><h2 th:text="${patient.insurancePlan != null ? patient.insurancePlan : 'No plan linked'}">Coverage plan</h2><p class="muted" th:if="${patient.policyNumber != null}" th:text="|Policy number · ${patient.policyNumber}|">Policy</p></div><span class="stat-icon mint">▤</span></div>
+      <div class="portal-dates"><div><small>COVERAGE STARTS</small><b th:text="${patient.coverageStartDate != null ? #temporals.format(patient.coverageStartDate,'dd MMM yyyy') : 'Not recorded'}">—</b></div><div><small>COVERAGE ENDS</small><b th:text="${patient.coverageEndDate != null ? #temporals.format(patient.coverageEndDate,'dd MMM yyyy') : 'Not recorded'}">—</b></div></div>
+      <div class="portal-renewal" th:if="${patient.daysToExpiry >= 0 and patient.daysToExpiry <= 30}"><b>Renewal coming up</b><p th:text="|Your cover ends in ${patient.daysToExpiry} days. Contact the CareCover team to review renewal options.|">Renewal reminder</p></div>
+      <p class="portal-expired" th:if="${patient.coverageStatus == 'Expired'}">This policy has expired. Contact the CareCover team if you need help with renewal.</p>
+    </article>
+    <article class="panel portal-contact"><div class="panel-head"><div><span class="eyebrow">MEMBER DETAILS</span><h2>Your information</h2></div><img th:if="${patient.profileImageUrl != null and !patient.profileImageUrl.isBlank()}" class="patient-photo portal-photo" th:src="${patient.profileImageUrl}" alt="Your profile"><span th:unless="${patient.profileImageUrl != null and !patient.profileImageUrl.isBlank()}" class="patient-initial" th:text="${#strings.substring(patient.patientName,0,1).toUpperCase()}">P</span></div>
+      <dl><dt>Member name</dt><dd th:text="${patient.patientName}">Name</dd><dt>Email</dt><dd th:text="${patient.email}">Email</dd><dt>Phone</dt><dd th:text="${patient.phoneNumber != null ? patient.phoneNumber : 'Not provided'}">Phone</dd><dt>Member since</dt><dd th:text="${patient.registeredAt != null ? #temporals.format(patient.registeredAt,'dd MMM yyyy') : '—'}">Date</dd></dl>
+    </article>
+    <article class="panel portal-password"><div class="panel-head"><div><h2>Change password</h2><p class="muted">Use at least 10 characters.</p></div></div>
+      <div class="form-alert error" th:if="${passwordError != null}" th:text="${passwordError}">Could not update</div><div class="form-alert success" th:if="${passwordSuccess != null}" th:text="${passwordSuccess}">Updated</div>
+      <form class="form" method="post" th:action="@{/portal/password}"><label>Current password<input name="currentPassword" type="password" required autocomplete="current-password"></label><label>New password<input name="newPassword" type="password" required minlength="10" autocomplete="new-password"></label><label>Confirm new password<input name="confirmPassword" type="password" required minlength="10" autocomplete="new-password"></label><button class="button primary">Update password</button></form>
+    </article>
+  </section>
+  <footer>CareCover <span>·</span> Your coverage, all in one place</footer>
+</main></body></html>
