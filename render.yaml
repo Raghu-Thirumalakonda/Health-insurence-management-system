@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: carecover
+    runtime: docker
+    plan: free
+    healthCheckPath: /login
+    envVars:
+      - key: DB_URL
+        fromDatabase:
+          name: carecover-db
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: carecover-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: carecover-db
+          property: password
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: carecover-db
+    databaseName: carecover
+    user: carecover
+    plan: free

@@ -54,16 +54,8 @@ Patient portal access is enabled by an admin in the patient record. Set a unique
 
 This is a portfolio/demo application. Use fictional patient details and keep it on a trusted local environment until you add deployment-grade privacy, monitoring, backups, and email/SMS delivery.
 
-## Cloud deployment (Railway)
+## Cloud deployment (Render)
 
-The repository includes a Dockerfile. In Railway, create a project with a MySQL service named `carecover-mysql`, then add a web service from this GitHub repository. Set these variables on the app service:
+The repository includes a `Dockerfile` and `render.yaml` Blueprint. Push the project to GitHub, then open Render and choose **New > Blueprint** and connect the repository. Render will create the web app and PostgreSQL database from the Blueprint. Enter a private `ADMIN_PASSWORD` when prompted; use at least 12 characters and do not commit it to GitHub. The app listens on Render's assigned port and uses PostgreSQL in the cloud. The local setup continues to use MySQL.
 
-```text
-DB_URL=jdbc:mysql://${{carecover-mysql.MYSQLHOST}}:${{carecover-mysql.MYSQLPORT}}/${{carecover-mysql.MYSQLDATABASE}}
-DB_USERNAME=${{carecover-mysql.MYSQLUSER}}
-DB_PASSWORD=${{carecover-mysql.MYSQLPASSWORD}}
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=<a private secret with at least 12 characters>
-```
-
-Keep the MySQL service private and use Railway's variable references shown above. Never commit passwords to GitHub. Railway supplies the web port; the app reads it from `PORT`. See [Railway's MySQL guide](https://docs.railway.com/databases/mysql) for database service setup.
+The Blueprint uses Render's free web and database plans for a portfolio demo. Free PostgreSQL databases are temporary and expire after 30 days; upgrade the database in Render before that date if you want the hosted data to remain available. Free web services may sleep when idle. Do not use real patient data in this demo.
